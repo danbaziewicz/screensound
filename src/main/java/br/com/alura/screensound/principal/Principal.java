@@ -4,6 +4,7 @@ import br.com.alura.screensound.model.Artista;
 import br.com.alura.screensound.model.Musica;
 import br.com.alura.screensound.model.TipoArtista;
 import br.com.alura.screensound.repository.ArtistaRepository;
+import br.com.alura.screensound.service.ConsultaIA;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,11 +65,61 @@ public class Principal {
     }
 
     private void pesquisarDadosDoArtista() {
+        System.out.println("\nInforme o nome do artista/banda que deseja pesquisar: ");
+        var nomeArtista = scan.nextLine();
 
+        Optional<Artista> artista = repositorio.findByNomeContainingIgnoreCase(nomeArtista);
+
+        if (artista.isPresent()) {
+            System.out.println("\nPesquisando informações sobre " + nomeArtista + "...");
+            System.out.println("\nAguarde enquanto consultamos...");
+
+            String informacoes = ConsultaIA.obterInformacoesArtista(nomeArtista);
+
+            if (informacoes != null && !informacoes.isEmpty()) {
+                System.out.println("\nInformações sobre " + nomeArtista + ":");
+                System.out.println("══════════════════════════════════════");
+                System.out.println(informacoes);
+                System.out.println("══════════════════════════════════════");
+            } else {
+                System.out.println("\nNão foi possível obter informações detalhadas para " + nomeArtista + " da IA.");
+            }
+
+            System.out.println("\nDeseja cadastrar músicas para este artista? (s/n)");
+            var opcao = scan.nextLine();
+            if (opcao.equalsIgnoreCase("s")) {
+                cadastrarMusicas();
+            }
+        } else {
+            System.out.println("\nArtista não encontrado no banco de dados local.");
+            System.out.println("Deseja:");
+            System.out.println("1. Tentar outro nome");
+            System.out.println("2. Cadastrar este artista");
+            System.out.println("3. Voltar ao menu");
+            System.out.print("Opção: ");
+
+            var opcao = scan.nextLine();
+            switch (opcao) {
+                case "1":
+                    pesquisarDadosDoArtista();
+                    break;
+                case "2":
+                    cadastrarArtistas();
+                    break;
+                default:
+            }
+        }
     }
 
     private void buscarMusicasPorArtista() {
-
+        System.out.println("Informe o nome do artista: ");
+        var nome = scan.nextLine();
+        List<Musica> musicas = repositorio.buscaMusicasPorArtista(nome);
+        if (musicas.isEmpty()) {
+            System.out.println("Nenhuma musica encontrada!");
+        } else {
+            musicas.forEach(System.out::println);
+        }
     }
 
     private void listarMusicas() {
